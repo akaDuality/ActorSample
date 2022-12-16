@@ -25,10 +25,14 @@ final class ActorSampleTests: XCTestCase {
         
         for i in 0...count {
             DispatchQueue.global(qos: .userInitiated).async {
-                sut.prefetch(unitId: i)
+                Task {
+                    sut.prefetch(unitId: i)
+                }
             }
             DispatchQueue.main.async {
-                _ = sut.paymentMethods.first
+                Task {
+                    _ = sut.paymentMethods.first
+                }
             }
         }
     }
