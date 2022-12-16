@@ -38,6 +38,30 @@ class PaymentMethodService {
     }
 }
 
+
+
+
+/// https://trycombine.com/posts/swift-actors/
+/// 1. Allow synchronous access to actor’s members from within itself,
+/// 2. Allow only asynchronous access to the actor’s members from any asynchronous context, and
+/// 3. Allow only asynchronous access to the actor’s members from outside the actor.
+///
+/// This way the actor itself accesses its data synchronously,
+/// but any other code from outside is required asynchronous access
+/// (with implicit synchronization) to prevent data races.
+
+actor PaymentMethodActor {
+    func prefetch(unitId: Int) {
+        self.paymentMethods = [PaymentMethod(id: unitId)]
+    }
+    
+    var paymentMethods: [PaymentMethod] = []
+}
+
+
+
+
+
 struct PaymentMethod: Equatable {
     let id: Int
 }
