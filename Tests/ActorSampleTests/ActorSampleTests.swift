@@ -3,10 +3,10 @@ import XCTest
 
 final class ActorSampleTests: XCTestCase {
 
-    func testPrefetchAndGet() {
+    func testPrefetchAndGet() async {
         let sut = PaymentMethodService()
         
-        sut.prefetch(unitId: "1")
+        await sut.prefetch(unitId: "1")
         
         XCTAssertEqual(sut.paymentMethods,
                        [PaymentMethod(name: "ApplePay"),
@@ -15,10 +15,14 @@ final class ActorSampleTests: XCTestCase {
 }
 
 class PaymentMethodService {
-    func prefetch(unitId: String) {
-        DispatchQueue.main.async {
-            self.paymentMethods = [PaymentMethod(name: "ApplePay"),
-                                   PaymentMethod(name: "SberPay")]
+    func prefetch(unitId: String) async {
+        await withCheckedContinuation { continuation in
+            DispatchQueue.main.async {
+                self.paymentMethods = [PaymentMethod(name: "ApplePay"),
+                                       PaymentMethod(name: "SberPay")]
+                
+                continuation.resume()
+            }
         }
     }
     
