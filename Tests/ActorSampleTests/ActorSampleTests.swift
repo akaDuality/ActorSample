@@ -6,11 +6,14 @@ final class ActorSampleTests: XCTestCase {
     func testPrefetchAndGet() {
         let sut = PaymentMethodService()
         
-        sut.prefetch(unitId: "1")
-        
-        XCTAssertEqual(sut.paymentMethods,
-                       [PaymentMethod(name: "ApplePay"),
-                        PaymentMethod(name: "SberPay")])
+        for i in 0..<1000 {
+            DispatchQueue.global(qos: .userInitiated).async {
+                sut.prefetch(unitId: "1")
+            }
+            DispatchQueue.main.async {
+                _ = sut.paymentMethods
+            }
+        }
     }
     
     func testPrefetchAndGet_Actor() async {
@@ -27,16 +30,8 @@ final class ActorSampleTests: XCTestCase {
 
 class PaymentMethodService {
     func prefetch(unitId: String) {
-        Task {
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async {
-                    self.paymentMethods = [PaymentMethod(name: "ApplePay"),
-                                           PaymentMethod(name: "SberPay")]
-                    
-                    continuation.resume()
-                }
-            }
-        }
+        self.paymentMethods = [PaymentMethod(name: "ApplePay"),
+                               PaymentMethod(name: "SberPay")]
     }
     
     var paymentMethods: [PaymentMethod] = []
@@ -47,17 +42,9 @@ class PaymentMethodService {
 // 3. Allow only asynchronous access to the actor’s members from outside the actor.
 actor PaymentMethodActor {
     func prefetch(unitId: String) {
-        Task {
-            await withCheckedContinuation { continuation in
-                DispatchQueue.main.async {
-                    Task {
-                        self.paymentMethods = [PaymentMethod(name: "ApplePay"),
-                                               PaymentMethod(name: "SberPay")]
-                        continuation.resume()
-                    }
-                }
-            }
-        }
+        self.paymentMethods = [PaymentMethod(name: "ApplePay"),
+                               PaymentMethod(name: "SberPay")]
+        
     }
 
     var paymentMethods: [PaymentMethod] = []
