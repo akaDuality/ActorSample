@@ -17,6 +17,21 @@ final class ActorSampleTests: XCTestCase {
             }
         }
     }
+    
+    func testPrefetchAndGetActor() {
+        let sut = PaymentMethodActor()
+        
+        let count = 10_000
+        
+        for i in 0...count {
+            DispatchQueue.global(qos: .userInitiated).async {
+                sut.prefetch(unitId: i)
+            }
+            DispatchQueue.main.async {
+                _ = sut.paymentMethods.first
+            }
+        }
+    }
 }
 
 class PaymentMethodService {
