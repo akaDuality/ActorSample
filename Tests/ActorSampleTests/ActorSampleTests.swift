@@ -6,25 +6,40 @@ final class ActorSampleTests: XCTestCase {
     func testPrefetchAndGet() {
         let sut = PaymentMethodService()
         
-        for i in 0..<10000 {
+        let count = 10_000
+        
+        for i in 0...count {
             DispatchQueue.global(qos: .userInitiated).async {
                 sut.prefetch(unitId: i)
             }
             DispatchQueue.main.async {
-                _ = sut.paymentMethods
+                _ = sut.paymentMethods.first
             }
         }
     }
 }
 
 class PaymentMethodService {
+    
+    let serialQueue = DispatchQueue(label: "Payment")
+    
     func prefetch(unitId: Int) {
-        self.paymentMethods = [PaymentMethod(id: unitId)]
+        serialQueue.async {
+            self._paymentMethods = [PaymentMethod(id: unitId)]
+        }
     }
     
-    var paymentMethods: [PaymentMethod] = []
+    
+    private var _paymentMethods: [PaymentMethod] = []
+    var paymentMethods: [PaymentMethod] {
+        serialQueue.sync(flags: .barrier, execute: {
+            return _paymentMethods
+        })
+    }
 }
 
 struct PaymentMethod: Equatable {
     let id: Int
 }
+
+// https://stackoverflow.com/questions/58236153/dispatchqueue-sync-vs-sync-barrier-in-concurrent-queue
