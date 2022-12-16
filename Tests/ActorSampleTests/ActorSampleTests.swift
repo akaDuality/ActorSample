@@ -12,6 +12,17 @@ final class ActorSampleTests: XCTestCase {
                        [PaymentMethod(name: "ApplePay"),
                         PaymentMethod(name: "SberPay")])
     }
+    
+    func testPrefetchAndGet_Actor() async {
+        let sut = PaymentMethodActor()
+        
+        await sut.prefetch(unitId: "1")
+        
+        let methods = await sut.paymentMethods
+        XCTAssertEqual(methods,
+                       [PaymentMethod(name: "ApplePay"),
+                        PaymentMethod(name: "SberPay")])
+    }
 }
 
 class PaymentMethodService {
@@ -31,18 +42,26 @@ class PaymentMethodService {
     var paymentMethods: [PaymentMethod] = []
 }
 
+// 1. Allow synchronous access to actor’s members from within itself,
+// 2. Allow only asynchronous access to the actor’s members from any asynchronous context, and
+// 3. Allow only asynchronous access to the actor’s members from outside the actor.
+actor PaymentMethodActor {
+    func prefetch(unitId: String) {
+        Task {
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async {
+                    Task {
+                        self.paymentMethods = [PaymentMethod(name: "ApplePay"),
+                                               PaymentMethod(name: "SberPay")]
+                        continuation.resume()
+                    }
+                }
+            }
+        }
+    }
 
-//actor PaymentMethodActor {
-//    func prefetch(unitId: String) {
-//        DispatchQueue.main.async {
-//            self.paymentMethods = [PaymentMethod(name: "ApplePay"),
-//                                   PaymentMethod(name: "SberPay")]
-//        }
-//
-//    }
-//
-//    var paymentMethods: [PaymentMethod] = []
-//}
+    var paymentMethods: [PaymentMethod] = []
+}
 
 struct PaymentMethod: Equatable {
     let name: String
