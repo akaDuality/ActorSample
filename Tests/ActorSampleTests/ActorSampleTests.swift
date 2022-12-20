@@ -3,6 +3,14 @@ import XCTest
 
 final class ActorSampleTests: XCTestCase {
     
+    func test_main() {
+        let sut = PaymentMethodService_JustMain()
+        
+        sut.prefetch(unitId: 1)
+        
+        _ = sut.paymentMethods.first
+    }
+    
     func test_oneUser() {
         let sut = PaymentMethodService_Background()
         

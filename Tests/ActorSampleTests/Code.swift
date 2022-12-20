@@ -4,6 +4,32 @@ struct PaymentMethod: Equatable {
     let id: Int
 }
 
+class PaymentMethodService_MainSample {
+    func prefetch(unitId: Int) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            /// Что-то делаем
+            
+            DispatchQueue.main.async {
+                self.paymentMethods = [PaymentMethod(id: unitId)]
+            }
+        }
+    }
+
+    var paymentMethods: [PaymentMethod] = []
+}
+
+class PaymentMethodService_JustMain {
+    func prefetch(unitId: Int) {
+        // Called on Main queue
+        
+        DispatchQueue.main.async {
+            self.paymentMethods = [PaymentMethod(id: unitId)]
+        }
+    }
+
+    var paymentMethods: [PaymentMethod] = []
+}
+
 class PaymentMethodService_Background {
     
     let concurrentQueue = DispatchQueue.global(qos: .background)
